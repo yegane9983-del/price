@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>قیمت‌گر | مدیریت مواد اولیه و کالا</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="theme-color" content="#181b20">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#181b20;
+    --surface:#22262d;
+    --surface-2:#2b3038;
+    --surface-3:#333941;
+    --border:#3a4048;
+    --accent:#e2892d;
+    --accent-dim:#a56420;
+    --steel:#7c94a3;
+    --text:#edeff1;
+    --text-dim:#9aa3ad;
+    --text-faint:#6b7480;
+    --success:#5fa87a;
+    --danger:#d9614f;
+    --radius:10px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; background:var(--bg); color:var(--text); font-family:'Vazirmatn',sans-serif;}
+  body{ padding-bottom:78px; min-height:100vh; }
+  .app{ max-width:460px; margin:0 auto; position:relative; min-height:100vh; }
+
+  /* ---- Header ---- */
+  header.top{
+    position:sticky; top:0; z-index:20;
+    background:linear-gradient(180deg,#1e2127,#181b20 90%);
+    border-bottom:1px solid var(--border);
+    padding:16px 18px 14px;
+  }
+  .plate{
+    display:flex; align-items:center; gap:10px;
+  }
+  .rivet{
+    width:7px; height:7px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #8b95a1, #4a4f56 70%);
+    box-shadow:0 1px 0 rgba(0,0,0,.5);
+  }
+  .brand{
+    font-weight:800; font-size:20px; letter-spacing:.3px;
+    color:var(--text);
+  }
+  .brand span{ color:var(--accent); }
+  .sub{ color:var(--text-dim); font-size:12.5px; margin-top:2px; }
+
+  /* ---- Tabs content ---- */
+  main{ padding:16px; }
+  .hidden{ display:none !important; }
+
+  .section-title{
+    display:flex; align-items:center; justify-content:space-between;
+    margin:4px 2px 12px;
+  }
+  .section-title h2{ font-size:15px; margin:0; font-weight:700; color:var(--text); }
+  .count-pill{
+    font-size:11px; color:var(--text-faint); background:var(--surface-2);
+    border:1px solid var(--border); padding:2px 9px; border-radius:20px;
+  }
+
+  .add-btn{
+    background:var(--accent); color:#1a1206; border:none;
+    font-weight:700; font-size:13.5px; padding:9px 14px; border-radius:9px;
+    display:flex; align-items:center; gap:6px; cursor:pointer;
+  }
+  .add-btn:active{ transform:scale(.97); }
+
+  /* ---- Material / tag card (riveted plate look) ---- */
+  .plate-card{
+    position:relative;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:13px 14px;
+    margin-bottom:10px;
+  }
+  .plate-card::before, .plate-card::after{
+    content:''; position:absolute; top:8px; width:5px; height:5px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #7d8590, #40444b 70%);
+  }
+  .plate-card::before{ right:8px; }
+  .plate-card::after{ left:8px; }
+  .plate-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .plate-name{ font-weight:700; font-size:14.5px; }
+  .plate-meta{ color:var(--text-dim); font-size:12px; margin-top:3px; }
+  .plate-price{
+    font-weight:800; font-size:15px; color:var(--accent); white-space:nowrap;
+  }
+  .plate-actions{ display:flex; gap:6px; margin-top:10px; }
+  .icon-btn{
+    background:var(--surface-2); border:1px solid var(--border); color:var(--text-dim);
+    font-size:12px; padding:6px 10px; border-radius:7px; cursor:pointer; flex:1;
+    display:flex; align-items:center; justify-content:center; gap:4px;
+  }
+  .icon-btn.danger{ color:var(--danger); }
+  .icon-btn:active{ background:var(--surface-3); }
+
+  .empty{
+    text-align:center; padding:40px 20px; color:var(--text-faint);
+    border:1px dashed var(--border); border-radius:var(--radius);
+  }
+  .empty .big{ font-size:28px; margin-bottom:8px; }
+
+  /* ---- Group accordion ---- */
+  .group{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    margin-bottom:12px; overflow:hidden;
+  }
+  .group-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:13px 14px; cursor:pointer;
+  }
+  .group-title{ display:flex; align-items:center; gap:9px; }
+  .group-bar{ width:4px; height:20px; border-radius:3px; background:var(--accent); }
+  .group-name{ font-weight:700; font-size:14.5px; }
+  .group-sub{ font-size:11.5px; color:var(--text-faint); margin-top:1px;}
+  .chev{ color:var(--text-faint); transition:transform .18s; font-size:12px; }
+  .group.open .chev{ transform:rotate(180deg); }
+  .group-body{ display:none; border-top:1px solid var(--border); padding:10px 12px 12px; }
+  .group.open .group-body{ display:block; }
+
+  .product-card{
+    background:var(--surface-2); border:1px solid var(--border);
+    border-radius:9px; padding:11px 12px; margin-bottom:8px;
+  }
+  .product-top{ display:flex; align-items:center; justify-content:space-between; gap:8px;}
+  .product-name{ font-weight:600; font-size:13.5px; }
+  .price-tags{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+  .tag{
+    font-size:11px; padding:3px 9px; border-radius:6px; font-weight:600;
+  }
+  .tag.cost{ background:rgba(124,148,163,.15); color:var(--steel); border:1px solid rgba(124,148,163,.3);}
+  .tag.final{ background:rgba(226,137,45,.15); color:var(--accent); border:1px solid rgba(226,137,45,.35);}
+  .recipe-line{ font-size:11px; color:var(--text-faint); margin-top:6px; line-height:1.9; }
+
+  .add-group-btn{
+    width:100%; background:none; border:1.5px dashed var(--border); color:var(--text-dim);
+    padding:12px; border-radius:9px; font-size:13px; font-weight:600; cursor:pointer; margin-top:4px;
+  }
+
+  /* ---- Price list ---- */
+  .filter-row{ display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; margin-bottom:14px; }
+  .filter-chip{
+    white-space:nowrap; padding:7px 13px; border-radius:20px; font-size:12.5px; font-weight:600;
+    background:var(--surface-2); border:1px solid var(--border); color:var(--text-dim); cursor:pointer;
+  }
+  .filter-chip.active{ background:var(--accent); color:#1a1206; border-color:var(--accent); }
+
+  .price-list-group{ margin-bottom:18px; }
+  .plg-title{
+    font-size:13px; font-weight:700; color:var(--steel); margin:0 0 8px 2px;
+    display:flex; align-items:center; gap:7px;
+  }
+  .plg-title::before{ content:''; width:3px; height:14px; background:var(--steel); border-radius:2px;}
+  table.price-table{ width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;}
+  table.price-table th{
+    background:var(--surface-2); font-size:11px; font-weight:700; color:var(--text-dim);
+    padding:9px 10px; text-align:right; border-bottom:1px solid var(--border);
+  }
+  table.price-table td{ padding:10px; font-size:12.5px; border-bottom:1px solid var(--border); }
+  table.price-table tr:last-child td{ border-bottom:none; }
+  table.price-table td.num{ color:var(--accent); font-weight:700; text-align:left; direction:ltr;}
+  table.price-table td.num.cost{ color:var(--steel); }
+
+  .toolbar{ display:flex; gap:8px; margin-bottom:14px; }
+  .toolbar .icon-btn{ flex:1; padding:10px; font-size:12.5px; font-weight:600;}
+
+  /* ---- Settings ---- */
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:12.5px; color:var(--text-dim); margin-bottom:6px; font-weight:600;}
+  .field input, .field select{
+    width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text);
+    padding:11px 12px; border-radius:8px; font-size:14px; font-family:inherit;
+  }
+  .hint{ font-size:11.5px; color:var(--text-faint); margin-top:6px; line-height:1.7;}
+
+  /* ---- Bottom nav ---- */
+  nav.bottom{
+    position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:460px; background:#1c1f25; border-top:1px solid var(--border);
+    display:flex; z-index:30; padding:6px 6px calc(6px + env(safe-area-inset-bottom));
+  }
+  nav.bottom button{
+    flex:1; background:none; border:none; color:var(--text-faint); cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:3px; padding:8px 4px;
+    font-family:inherit; font-size:10.5px; font-weight:600; border-radius:9px;
+  }
+  nav.bottom button svg{ width:20px; height:20px; }
+  nav.bottom button.active{ color:var(--accent); background:rgba(226,137,45,.08); }
+
+  /* ---- Modal ---- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(10,11,13,.7); z-index:50;
+    display:flex; align-items:flex-end; justify-content:center;
+  }
+  .overlay.hidden{ display:none; }
+  .sheet{
+    width:100%; max-width:460px; background:var(--surface); border-radius:16px 16px 0 0;
+    padding:18px 18px calc(18px + env(safe-area-inset-bottom)); max-height:85vh; overflow-y:auto;
+    border-top:1px solid var(--border);
+  }
+  .sheet-handle{ width:36px; height:4px; background:var(--surface-3); border-radius:3px; margin:0 auto 14px; }
+  .sheet h3{ margin:0 0 16px; font-size:16px; }
+  .row2{ display:flex; gap:10px; }
+  .row2 .field{ flex:1; }
+  .sheet-actions{ display:flex; gap:10px; margin-top:6px; }
+  .btn-primary{
+    flex:1; background:var(--accent); color:#1a1206; border:none; font-weight:700;
+    padding:12px; border-radius:9px; font-size:14px; cursor:pointer; font-family:inherit;
+  }
+  .btn-ghost{
+    flex:1; background:var(--surface-2); color:var(--text-dim); border:1px solid var(--border);
+    padding:12px; border-radius:9px; font-size:14px; cursor:pointer; font-family:inherit;
+  }
+  .recipe-editor{ border:1px solid var(--border); border-radius:9px; padding:10px; margin-bottom:14px; }
+  .recipe-row{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+  .recipe-row select{ flex:2; }
+  .recipe-row input{ flex:1; }
+  .recipe-row .rm{ background:none; border:none; color:var(--danger); font-size:16px; cursor:pointer; padding:4px;}
+  .add-line{
+    background:none; border:1px dashed var(--border); color:var(--text-dim); width:100%;
+    padding:8px; border-radius:7px; font-size:12px; cursor:pointer; font-family:inherit;
+  }
+  .toast{
+    position:fixed; bottom:90px; left:50%; transform:translateX(-50%);
+    background:var(--surface-3); color:var(--text); padding:10px 18px; border-radius:20px;
+    font-size:12.5px; z-index:60; border:1px solid var(--border); opacity:0; transition:opacity .2s, transform .2s;
+    pointer-events:none;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(-6px); }
+
+  @media print{
+    nav.bottom, header.top, .toolbar, .filter-row, .add-btn{ display:none !important; }
+    body{ background:#fff; color:#000; padding:0; }
+    main{ padding:0; }
+    table.price-table{ border:1px solid #ccc; }
+    table.price-table th{ background:#eee; color:#000; }
+    table.price-table td{ color:#000; border-color:#ddd; }
+    td.num, td.num.cost{ color:#000 !important; }
+    .plg-title{ color:#000; }
+    .plg-title::before{ background:#888; }
+    .app{ max-width:100%; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div class="plate">
+      <span class="rivet"></span>
+      <div>
+        <div class="brand">قیمت<span>‌گر</span></div>
+      </div>
+      <span class="rivet" style="margin-right:auto;"></span>
+    </div>
+    <div class="sub" id="headerSub">مدیریت مواد اولیه، کالا و لیست قیمت</div>
+  </header>
+
+  <main>
+
+    <!-- TAB: مواد اولیه -->
+    <section id="tab-materials">
+      <div class="section-title">
+        <h2>مواد اولیه</h2>
+        <span class="count-pill" id="matCount">0 قلم</span>
+      </div>
+      <div id="materialsList"></div>
+      <button class="add-btn" style="width:100%; justify-content:center; margin-top:8px;" onclick="openMaterialSheet()">+ افزودن ماده اولیه</button>
+    </section>
+
+    <!-- TAB: کالاها و گروه‌ها -->
+    <section id="tab-products" class="hidden">
+      <div class="section-title">
+        <h2>گروه‌ها و کالاها</h2>
+        <span class="count-pill" id="prodCount">0 کالا</span>
+      </div>
+      <div id="groupsList"></div>
+      <button class="add-group-btn" onclick="openGroupSheet()">+ افزودن گروه جدید</button>
+    </section>
+
+    <!-- TAB: لیست قیمت -->
+    <section id="tab-pricelist" class="hidden">
+      <div class="section-title">
+        <h2>لیست قیمت</h2>
+      </div>
+      <div class="toolbar">
+        <button class="icon-btn" onclick="window.print()">🖨 چاپ / خروجی PDF</button>
+      </div>
+      <div class="filter-row" id="filterRow"></div>
+      <div id="priceListOutput"></div>
+    </section>
+
+    <!-- TAB: تنظیمات -->
+    <section id="tab-settings" class="hidden">
+      <div class="section-title"><h2>تنظیمات</h2></div>
+
+      <div class="field">
+        <label>درصد سود پیش‌فرض (روی همه کالاها اعمال می‌شود مگر برای کالایی که سود اختصاصی تعریف کرده باشید)</label>
+        <input type="number" id="globalMarkup" placeholder="مثلا 140">
+      </div>
+      <button class="btn-primary" style="width:100%; margin-bottom:24px;" onclick="saveMarkup()">ذخیره درصد سود</button>
+
+      <div class="field">
+        <label>پشتیبان‌گیری از اطلاعات</label>
+        <div class="row2">
+          <button class="icon-btn" onclick="exportData()">⬇ دانلود فایل پشتیبان (JSON)</button>
+        </div>
+        <div class="hint">این فایل شامل همه‌ی مواد اولیه، گروه‌ها، کالاها و قیمت‌هاست. آن را جایی امن نگه دارید یا در گیت‌هاب پروژه‌تان قرار دهید.</div>
+      </div>
+
+      <div class="field">
+        <label>بازیابی از فایل پشتیبان</label>
+        <input type="file" id="importFile" accept="application/json" onchange="importData(event)">
+      </div>
+
+      <div class="field" style="margin-top:24px;">
+        <button class="icon-btn danger" style="width:100%;" onclick="resetAllData()">🗑 حذف کامل اطلاعات و شروع مجدد</button>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="bottom">
+    <button class="tab-btn active" data-tab="materials" onclick="switchTab('materials')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      مواد اولیه
+    </button>
+    <button class="tab-btn" data-tab="products" onclick="switchTab('products')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8"/></svg>
+      کالاها
+    </button>
+    <button class="tab-btn" data-tab="pricelist" onclick="switchTab('pricelist')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 2h6l1 4H8l1-4zM5 6h14l1 16H4L5 6zM9 11h6M9 15h6"/></svg>
+      لیست قیمت
+    </button>
+    <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 005 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      تنظیمات
+    </button>
+  </nav>
+</div>
+
+<!-- Material sheet -->
+<div class="overlay hidden" id="materialOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h3 id="materialSheetTitle">افزودن ماده اولیه</h3>
+    <input type="hidden" id="materialId">
+    <div class="field"><label>نام ماده اولیه</label><input id="materialName" placeholder="مثلا ورق سیاه"></div>
+    <div class="row2">
+      <div class="field"><label>واحد</label>
+        <select id="materialUnit">
+          <option value="کیلوگرم">کیلوگرم</option>
+          <option value="متر">متر</option>
+          <option value="متر مربع">متر مربع</option>
+          <option value="عدد">عدد</option>
+          <option value="لیتر">لیتر</option>
+        </select>
+      </div>
+      <div class="field"><label>قیمت واحد (تومان)</label><input type="number" id="materialPrice" placeholder="0"></div>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-ghost" onclick="closeSheet('materialOverlay')">انصراف</button>
+      <button class="btn-primary" onclick="saveMaterial()">ذخیره</button>
+    </div>
+  </div>
+</div>
+
+<!-- Group sheet -->
+<div class="overlay hidden" id="groupOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h3>افزودن گروه جدید</h3>
+    <div class="field"><label>نام گروه</label><input id="groupName" placeholder="مثلا تابلوهای فرم‌دار"></div>
+    <div class="sheet-actions">
+      <button class="btn-ghost" onclick="closeSheet('groupOverlay')">انصراف</button>
+      <button class="btn-primary" onclick="saveGroup()">ذخیره</button>
+    </div>
+  </div>
+</div>
+
+<!-- Product sheet -->
+<div class="overlay hidden" id="productOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h3 id="productSheetTitle">افزودن کالا</h3>
+    <input type="hidden" id="productId">
+    <input type="hidden" id="productGroupId">
+    <div class="field"><label>نام کالا</label><input id="productName" placeholder="مثلا تابلو اماکن ۴۰×۱۰۰"></div>
+    <div class="field"><label>درصد سود اختصاصی (اختیاری - خالی بگذارید تا از درصد پیش‌فرض استفاده شود)</label><input type="number" id="productMarkup" placeholder="خالی = پیش‌فرض"></div>
+    <div class="field">
+      <label>فرمول ساخت (مواد اولیه مصرفی)</label>
+      <div class="recipe-editor" id="recipeEditor"></div>
+      <button class="add-line" onclick="addRecipeLine()">+ افزودن ماده اولیه به فرمول</button>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-ghost" onclick="closeSheet('productOverlay')">انصراف</button>
+      <button class="btn-primary" onclick="saveProduct()">ذخیره کالا</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let state = { materials: [], groups: [], products: [], globalMarkup: 140 };
+let activeGroupIds = new Set();
+let activePriceFilter = 'all';
+let loaded = false;
+
+async function loadState(){
+  try{
+    const raw = localStorage.getItem('price-app-data');
+    if(raw){ state = JSON.parse(raw); }
+  }catch(e){ /* first run, no data yet */ }
+  loaded = true;
+  renderAll();
+}
+
+async function persist(){
+  try{
+    localStorage.setItem('price-app-data', JSON.stringify(state));
+  }catch(e){ showToast('خطا در ذخیره‌سازی اطلاعات'); }
+}
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+function fmt(n){
+  n = Math.round(n||0);
+  return n.toLocaleString('en-US');
+}
+
+/* ---------------- TABS ---------------- */
+function switchTab(name){
+  document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));
+  document.getElementById('tab-'+name).classList.remove('hidden');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
+  const subs = {
+    materials:'مدیریت مواد اولیه و قیمت روز',
+    products:'گروه‌بندی کالاها و فرمول ساخت',
+    pricelist:'خروجی نهایی برای مشتری',
+    settings:'درصد سود و پشتیبان‌گیری'
+  };
+  document.getElementById('headerSub').textContent = subs[name];
+  if(name==='pricelist') renderPriceList();
+}
+
+/* ---------------- MATERIALS ---------------- */
+function renderMaterials(){
+  const list = document.getElementById('materialsList');
+  document.getElementById('matCount').textContent = state.materials.length + ' قلم';
+  if(state.materials.length===0){
+    list.innerHTML = '<div class="empty"><div class="big">🧱</div>هنوز ماده اولیه‌ای ثبت نشده<br>با دکمه پایین شروع کنید</div>';
+    return;
+  }
+  list.innerHTML = state.materials.map(m=>`
+    <div class="plate-card">
+      <div class="plate-row">
+        <div>
+          <div class="plate-name">${escapeHtml(m.name)}</div>
+          <div class="plate-meta">واحد: ${escapeHtml(m.unit)}</div>
+        </div>
+        <div class="plate-price">${fmt(m.price)}<span style="font-size:10px;color:var(--text-faint);"> تومان</span></div>
+      </div>
+      <div class="plate-actions">
+        <button class="icon-btn" onclick="openMaterialSheet('${m.id}')">✎ ویرایش قیمت</button>
+        <button class="icon-btn danger" onclick="deleteMaterial('${m.id}')">🗑 حذف</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openMaterialSheet(id){
+  const isEdit = !!id;
+  document.getElementById('materialSheetTitle').textContent = isEdit ? 'ویرایش ماده اولیه' : 'افزودن ماده اولیه';
+  document.getElementById('materialId').value = id || '';
+  if(isEdit){
+    const m = state.materials.find(x=>x.id===id);
+    document.getElementById('materialName').value = m.name;
+    document.getElementById('materialUnit').value = m.unit;
+    document.getElementById('materialPrice').value = m.price;
+  } else {
+    document.getElementById('materialName').value = '';
+    document.getElementById('materialUnit').value = 'کیلوگرم';
+    document.getElementById('materialPrice').value = '';
+  }
+  document.getElementById('materialOverlay').classList.remove('hidden');
+}
+
+function saveMaterial(){
+  const id = document.getElementById('materialId').value;
+  const name = document.getElementById('materialName').value.trim();
+  const unit = document.getElementById('materialUnit').value;
+  const price = parseFloat(document.getElementById('materialPrice').value) || 0;
+  if(!name){ showToast('نام ماده اولیه را وارد کنید'); return; }
+  if(id){
+    const m = state.materials.find(x=>x.id===id);
+    m.name=name; m.unit=unit; m.price=price;
+  } else {
+    state.materials.push({id:uid(), name, unit, price});
+  }
+  closeSheet('materialOverlay');
+  persist(); renderAll();
+  showToast('ذخیره شد');
+}
+
+function deleteMaterial(id){
+  const used = state.products.some(p=>p.recipe.some(r=>r.materialId===id));
+  if(used && !confirm('این ماده اولیه در فرمول یک یا چند کالا استفاده شده. حذف شود؟')) return;
+  state.materials = state.materials.filter(x=>x.id!==id);
+  state.products.forEach(p=>{ p.recipe = p.recipe.filter(r=>r.materialId!==id); });
+  persist(); renderAll();
+}
+
+/* ---------------- GROUPS / PRODUCTS ---------------- */
+function calcCost(product){
+  return product.recipe.reduce((sum,r)=>{
+    const mat = state.materials.find(m=>m.id===r.materialId);
+    if(!mat) return sum;
+    return sum + (mat.price * (parseFloat(r.qty)||0));
+  },0);
+}
+function calcFinal(product){
+  const cost = calcCost(product);
+  const markup = (product.markup!==null && product.markup!==undefined && product.markup!=='') ? parseFloat(product.markup) : state.globalMarkup;
+  return cost * (1 + (markup||0)/100);
+}
+
+function renderGroups(){
+  const wrap = document.getElementById('groupsList');
+  document.getElementById('prodCount').textContent = state.products.length + ' کالا';
+  if(state.groups.length===0){
+    wrap.innerHTML = '<div class="empty"><div class="big">📦</div>هنوز گروهی ساخته نشده<br>ابتدا یک گروه (مثلا «تابلوهای فرم‌دار») بسازید</div>';
+    return;
+  }
+  wrap.innerHTML = state.groups.map(g=>{
+    const prods = state.products.filter(p=>p.groupId===g.id);
+    const open = activeGroupIds.has(g.id);
+    return `
+    <div class="group ${open?'open':''}">
+      <div class="group-head" onclick="toggleGroup('${g.id}')">
+        <div class="group-title">
+          <span class="group-bar"></span>
+          <div>
+            <div class="group-name">${escapeHtml(g.name)}</div>
+            <div class="group-sub">${prods.length} کالا</div>
+          </div>
+        </div>
+        <span class="chev">▾</span>
+      </div>
+      <div class="group-body">
+        ${prods.map(p=>`
+          <div class="product-card">
+            <div class="product-top">
+              <div class="product-name">${escapeHtml(p.name)}</div>
+            </div>
+            <div class="recipe-line">${p.recipe.map(r=>{
+              const mat = state.materials.find(m=>m.id===r.materialId);
+              return mat ? `${mat.name}: ${r.qty} ${mat.unit}` : '';
+            }).filter(Boolean).join(' • ') || 'فرمولی ثبت نشده'}</div>
+            <div class="price-tags">
+              <span class="tag cost">قیمت تمام‌شده: ${fmt(calcCost(p))}</span>
+              <span class="tag final">قیمت نهایی: ${fmt(calcFinal(p))}</span>
+            </div>
+            <div class="plate-actions">
+              <button class="icon-btn" onclick="openProductSheet('${g.id}','${p.id}')">✎ ویرایش</button>
+              <button class="icon-btn danger" onclick="deleteProduct('${p.id}')">🗑 حذف</button>
+            </div>
+          </div>
+        `).join('')}
+        <button class="add-line" onclick="openProductSheet('${g.id}')">+ افزودن کالا به این گروه</button>
+        <button class="icon-btn danger" style="width:100%; margin-top:8px;" onclick="deleteGroup('${g.id}')">🗑 حذف کل گروه</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleGroup(id){
+  if(activeGroupIds.has(id)) activeGroupIds.delete(id); else activeGroupIds.add(id);
+  renderGroups();
+}
+
+function openGroupSheet(){
+  document.getElementById('groupName').value='';
+  document.getElementById('groupOverlay').classList.remove('hidden');
+}
+function saveGroup(){
+  const name = document.getElementById('groupName').value.trim();
+  if(!name){ showToast('نام گروه را وارد کنید'); return; }
+  const g = {id:uid(), name};
+  state.groups.push(g);
+  activeGroupIds.add(g.id);
+  closeSheet('groupOverlay');
+  persist(); renderAll();
+}
+function deleteGroup(id){
+  if(!confirm('این گروه و همه کالاهای داخل آن حذف شود؟')) return;
+  state.groups = state.groups.filter(x=>x.id!==id);
+  state.products = state.products.filter(p=>p.groupId!==id);
+  persist(); renderAll();
+}
+
+let recipeDraft = [];
+function openProductSheet(groupId, productId){
+  document.getElementById('productGroupId').value = groupId;
+  document.getElementById('productId').value = productId || '';
+  if(productId){
+    const p = state.products.find(x=>x.id===productId);
+    document.getElementById('productSheetTitle').textContent = 'ویرایش کالا';
+    document.getElementById('productName').value = p.name;
+    document.getElementById('productMarkup').value = (p.markup===null||p.markup===undefined) ? '' : p.markup;
+    recipeDraft = p.recipe.map(r=>({...r}));
+  } else {
+    document.getElementById('productSheetTitle').textContent = 'افزودن کالا';
+    document.getElementById('productName').value = '';
+    document.getElementById('productMarkup').value = '';
+    recipeDraft = [];
+  }
+  renderRecipeEditor();
+  document.getElementById('productOverlay').classList.remove('hidden');
+}
+
+function renderRecipeEditor(){
+  const el = document.getElementById('recipeEditor');
+  if(state.materials.length===0){
+    el.innerHTML = '<div class="hint">ابتدا از تب «مواد اولیه» چند ماده ثبت کنید.</div>';
+    return;
+  }
+  if(recipeDraft.length===0){
+    el.innerHTML = '<div class="hint">هنوز ماده‌ای به فرمول اضافه نشده.</div>';
+    return;
+  }
+  el.innerHTML = recipeDraft.map((r,i)=>`
+    <div class="recipe-row">
+      <select onchange="recipeDraft[${i}].materialId=this.value">
+        ${state.materials.map(m=>`<option value="${m.id}" ${m.id===r.materialId?'selected':''}>${escapeHtml(m.name)}</option>`).join('')}
+      </select>
+      <input type="number" step="any" placeholder="مقدار" value="${r.qty||''}" oninput="recipeDraft[${i}].qty=this.value">
+      <button class="rm" onclick="removeRecipeLine(${i})">✕</button>
+    </div>
+  `).join('');
+}
+function addRecipeLine(){
+  if(state.materials.length===0){ showToast('ابتدا ماده اولیه ثبت کنید'); return; }
+  recipeDraft.push({materialId: state.materials[0].id, qty:''});
+  renderRecipeEditor();
+}
+function removeRecipeLine(i){ recipeDraft.splice(i,1); renderRecipeEditor(); }
+
+function saveProduct(){
+  const groupId = document.getElementById('productGroupId').value;
+  const id = document.getElementById('productId').value;
+  const name = document.getElementById('productName').value.trim();
+  const markupRaw = document.getElementById('productMarkup').value;
+  const markup = markupRaw==='' ? null : parseFloat(markupRaw);
+  if(!name){ showToast('نام کالا را وارد کنید'); return; }
+  const recipe = recipeDraft.filter(r=>r.materialId && r.qty!=='' && r.qty!=null);
+  if(id){
+    const p = state.products.find(x=>x.id===id);
+    p.name=name; p.markup=markup; p.recipe=recipe;
+  } else {
+    state.products.push({id:uid(), groupId, name, markup, recipe});
+  }
+  closeSheet('productOverlay');
+  persist(); renderAll();
+  showToast('کالا ذخیره شد');
+}
+function deleteProduct(id){
+  if(!confirm('این کالا حذف شود؟')) return;
+  state.products = state.products.filter(x=>x.id!==id);
+  persist(); renderAll();
+}
+
+/* ---------------- PRICE LIST ---------------- */
+function renderFilterRow(){
+  const row = document.getElementById('filterRow');
+  const chips = [{id:'all', name:'همه گروه‌ها'}, ...state.groups];
+  row.innerHTML = chips.map(g=>`
+    <button class="filter-chip ${activePriceFilter===g.id?'active':''}" onclick="setPriceFilter('${g.id}')">${escapeHtml(g.name)}</button>
+  `).join('');
+}
+function setPriceFilter(id){ activePriceFilter=id; renderPriceList(); }
+
+function renderPriceList(){
+  renderFilterRow();
+  const out = document.getElementById('priceListOutput');
+  const groups = activePriceFilter==='all' ? state.groups : state.groups.filter(g=>g.id===activePriceFilter);
+  if(state.products.length===0){
+    out.innerHTML = '<div class="empty"><div class="big">🧾</div>هنوز کالایی برای نمایش وجود ندارد</div>';
+    return;
+  }
+  out.innerHTML = groups.map(g=>{
+    const prods = state.products.filter(p=>p.groupId===g.id);
+    if(prods.length===0) return '';
+    return `
+      <div class="price-list-group">
+        <div class="plg-title">${escapeHtml(g.name)}</div>
+        <table class="price-table">
+          <thead><tr><th>نام کالا</th><th>تمام‌شده</th><th>قیمت نهایی</th></tr></thead>
+          <tbody>
+            ${prods.map(p=>`
+              <tr>
+                <td>${escapeHtml(p.name)}</td>
+                <td class="num cost">${fmt(calcCost(p))}</td>
+                <td class="num">${fmt(calcFinal(p))}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }).join('') || '<div class="empty">کالایی در این گروه ثبت نشده</div>';
+}
+
+/* ---------------- SETTINGS ---------------- */
+function saveMarkup(){
+  const v = parseFloat(document.getElementById('globalMarkup').value);
+  state.globalMarkup = isNaN(v) ? state.globalMarkup : v;
+  persist(); renderAll();
+  showToast('درصد سود ذخیره شد');
+}
+function exportData(){
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'price-data-backup.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function importData(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      if(!data.materials || !data.groups || !data.products) throw new Error('invalid');
+      state = data;
+      persist(); renderAll();
+      showToast('اطلاعات بازیابی شد');
+    }catch(err){ showToast('فایل معتبر نیست'); }
+  };
+  reader.readAsText(file);
+}
+function resetAllData(){
+  if(!confirm('همه اطلاعات (مواد اولیه، گروه‌ها، کالاها) پاک شود؟ این عمل قابل بازگشت نیست.')) return;
+  state = { materials: [], groups: [], products: [], globalMarkup: 140 };
+  persist(); renderAll();
+}
+
+/* ---------------- HELPERS ---------------- */
+function closeSheet(id){ document.getElementById(id).classList.add('hidden'); }
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function renderAll(){
+  if(!loaded) return;
+  document.getElementById('globalMarkup').value = state.globalMarkup;
+  renderMaterials();
+  renderGroups();
+  if(!document.getElementById('tab-pricelist').classList.contains('hidden')) renderPriceList();
+}
+
+loadState();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
